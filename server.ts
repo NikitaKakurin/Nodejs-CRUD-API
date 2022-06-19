@@ -1,8 +1,17 @@
-import http from 'http';
+import * as http from 'http';
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 
+interface IReqUser{
+  username: string;
+  age: number;
+  hobbies: string[];
+}
 
-const db = [];
+interface IUser extends IReqUser{
+  id: string;
+}
+
+const db: IUser[] = [];
 
 const server = http.createServer((req, res) => {
   switch (req.method) {
@@ -66,19 +75,19 @@ function get (req, res) {
     return;
   }
   if(req.url.startsWith("/api/users/")){
-    const reqParts = req.url.split('/');
+    const reqParts: string[] = req.url.split('/');
 
     if(reqParts.length !== 4){
       sendResponse(res, 404, `wrong request: ${req.url}`);
       return;
     };
 
-    const reqId = reqParts[3].toString();
+    const reqId: string = reqParts[3].toString();
     if(!uuidValidate(reqId)){
       sendResponse(res, 400, `userId ${reqId} is invalid (not uuid)`);
       return;
     };
-    let resObj = db.find((user) => user.id===reqId);
+    let resObj: IUser|undefined = db.find((user:IUser) => user.id===reqId);
 
     if(!resObj){
       sendResponse(res, 404, `user with id: ${reqId} - not found`)
@@ -91,7 +100,7 @@ function get (req, res) {
   sendResponse(res, 404,`wrong request: ${req.url}`);
 }
 
-function sendResponse(response, code, message){
+function sendResponse(response, code: number, message: string|IUser[]|IUser|[]){
   response.statusCode = code;
   response.setHeader("Content-Type", "application/json");
   response.write(JSON.stringify(message));
@@ -102,12 +111,12 @@ function sendResponse(response, code, message){
 function post(req, res){
   switch (req.url) {
     case "/api/users":
-      let buffer = '';
+      let buffer: string = '';
       req.on('data', chunk => {
         buffer += chunk;
       });
       req.on('end', () => {
-        const reqBody = JSON.parse(buffer);
+        const reqBody: IUser = JSON.parse(buffer);
 
         if(reqBody.username && 
             typeof reqBody.username ==='string' &&
@@ -117,17 +126,17 @@ function post(req, res){
             Array.isArray(reqBody.hobbies) &&
             reqBody.hobbies.every((elem)=>(typeof elem === 'string'))
         ){
-          let id = uuidv4();
-          while (db.find((user) => user.id===id)) {
+          let id: string = uuidv4();
+          while (db.find((user: IUser) => user.id===id)) {
             id = uuidv4();
           }
           reqBody.id = id;
-           const result = {
+          const result: IUser = {
             id: reqBody.id,
             username: reqBody.username,
             age: reqBody.age,
             hobbies: reqBody.hobbies,
-           }
+          }
 
           db.push(result);
           sendResponse(res, 201, result);
@@ -162,19 +171,19 @@ function put(req, res) {
         return;
       };
   
-      const reqId = reqParts[3].toString();
+      const reqId: string = reqParts[3].toString();
       if(!uuidValidate(reqId)){
         sendResponse(res, 400, `userId ${reqId} is invalid (not uuid)`);
         return;
       };
-      const user = db.find((user) => user.id===reqId);
+      const user: IUser|undefined = db.find((user) => user.id===reqId);
   
       if(!user){
         sendResponse(res, 404, `user with id: ${reqId} - not found`)
         return;
       };
 
-      const reqBody = JSON.parse(buffer);
+      const reqBody: IReqUser = JSON.parse(buffer);
 
       if(reqBody.username && 
           typeof reqBody.username ==='string'){
@@ -209,26 +218,26 @@ function put(req, res) {
 
 function deleteUser(req, res) {
   if(req.url.startsWith("/api/users/")){
-    const reqParts = req.url.split('/');
+    const reqParts: string = req.url.split('/');
 
     if(reqParts.length !== 4){
       sendResponse(res, 404, `wrong request: ${req.url}`);
       return;
     };
 
-    const reqId = reqParts[3].toString();
+    const reqId: string = reqParts[3].toString();
     if(!uuidValidate(reqId)){
       sendResponse(res, 400, `userId ${reqId} is invalid (not uuid)`);
       return;
     };
-    let indexDelete = db.findIndex((user) => user.id===reqId);
+    let indexDelete: number = db.findIndex((user) => user.id===reqId);
 
     if(indexDelete === -1){
       sendResponse(res, 404, `user with id: ${reqId} - not found`)
       return;
     };
 
-    const userId = db[indexDelete].id;
+    const userId: string = db[indexDelete].id;
 
     db.splice(indexDelete,1)
     sendResponse(res, 204, `user with id: ${userId} is delete`)
