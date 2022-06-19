@@ -111,8 +111,8 @@ function post(req: any, res: any){
   switch (req.url) {
     case "/api/users":
       let buffer: string = '';
-      req.on('data', (chunk: Buffer)  => {
-        buffer += chunk;
+      req.on('data', (chunk: string)  => {
+        buffer += chunk.toString();
       });
       req.on('end', () => {
         const reqBody: IUser = JSON.parse(buffer);
@@ -157,7 +157,7 @@ function put(req: any, res: any) {
     
     let buffer: string = '';
 
-    req.on('data', (chunk: Buffer) => {
+    req.on('data', (chunk: string) => {
       buffer += chunk.toString();
     });
 
