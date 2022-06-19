@@ -7,26 +7,51 @@ const db = [];
 const server = http.createServer((req, res) => {
   switch (req.method) {
     case "GET":
-      get(req, res)
-    break
+      try{
+        get(req, res)
+      } catch(err){
+        if(err){
+          sendResponse(res, 500, `Internal Server Error: ${err.message} `);
+        }
+      }
+      
+    break;
 
     case "POST":
-      post(req, res)
-    break
+      try{
+        post(req, res)
+      } catch(err){
+        if(err){
+          sendResponse(res, 500, `Internal Server Error: ${err.message} `);
+        }
+      }
+    break;
 
     case "PUT":
-      put(req, res)
-    break
+      try{
+        put(req, res)
+      } catch(err){
+        if(err){
+          sendResponse(res, 500, `Internal Server Error: ${err.message} `);
+        }
+      }
+    break;
 
     case "DELETE":
-      deleteUser(req, res)
-    break
+      try{
+        deleteUser(req, res)
+      } catch(err){
+        if(err){
+          sendResponse(res, 500, `Internal Server Error: ${err.message} `);
+        }
+      }
+    break;
 
     default:
       // Send res for requests with no other response
-      res.statusCode = 400
-      res.write("No Response")
-      res.end()
+      res.statusCode = 400;
+      res.write("No Response");
+      res.end();
   }
 });
 
