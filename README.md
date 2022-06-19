@@ -19,4 +19,4 @@
 - http://localhost:4000/api/users/${id}, теле запроса можно отправить ключи username(строка), age(число), hobbies(массив строк) - редактирование данных пользователя с id
 
 4. DELETE
-- http://localhost:4000/api/users/${id}, теле запроса можно отправить ключи username(строка), age(число), hobbies(массив строк) - удаление пользователя с id из db.
+- http://localhost:4000/api/users/${id}, - удаление пользователя с id из db.
