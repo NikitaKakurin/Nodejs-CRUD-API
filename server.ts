@@ -109,6 +109,7 @@ function sendResponse(response: any, code: number, message: string|IUser[]|IUser
 
 function post(req: any, res: any){
   switch (req.url) {
+    case "/api/users/":
     case "/api/users":
       let buffer: string = '';
       req.on('data', (chunk: string)  => {
