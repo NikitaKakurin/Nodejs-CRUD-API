@@ -8,7 +8,7 @@
     "dev": "nodemon",
     "build": "tsc server.ts",
     "start": "ts-node server.ts",
-    "js": "nodemon"
+    "start:dev": "nodemon"
   },
   "repository": {
     "type": "git",
