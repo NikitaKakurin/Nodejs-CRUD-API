@@ -14,6 +14,11 @@ const server = http.createServer((req, res) => {
     case "POST":
       post(req, res)
     break
+
+    case "PUT":
+      put(req, res)
+    break
+
     default:
       // Send res for requests with no other response
       res.statusCode = 400
@@ -66,7 +71,6 @@ function sendResponse(response, code, message){
 };
 
 function post(req, res){
-  console.log(req.url);
   switch (req.url) {
     case "/api/users":
       let buffer = '';
@@ -89,8 +93,15 @@ function post(req, res){
             id = uuidv4();
           }
           reqBody.id = id;
-          db.push(reqBody);
-          sendResponse(res, 201, reqBody);
+           const result = {
+            id: reqBody.id,
+            username: reqBody.username,
+            age: reqBody.age,
+            hobbies: reqBody.hobbies,
+           }
+
+          db.push(result);
+          sendResponse(res, 201, result);
           return;
         }
         sendResponse(res, 400, 'request body does not contain required fields');
@@ -101,4 +112,68 @@ function post(req, res){
       res.write(`CANNOT POST ${req.url}`);
       res.end();
   }
+}
+
+function put(req, res) {
+  if(req.url.startsWith("/api/users/")){
+    console.log("WORK");
+    
+    let buffer = '';
+
+    req.on('data', chunk => {
+      buffer += chunk;
+    });
+
+    req.on('end', () => {
+
+      const reqParts = req.url.split('/');
+
+      if(reqParts.length !== 4){
+        sendResponse(res, 404, `wrong request: ${req.url}`);
+        return;
+      };
+  
+      const reqId = reqParts[3].toString();
+      if(!uuidValidate(reqId)){
+        sendResponse(res, 400, `userId ${reqId} is invalid (not uuid)`);
+        return;
+      };
+      const user = db.find((user) => user.id===reqId);
+  
+      if(!user){
+        sendResponse(res, 404, `user with id: ${reqId} - not found`)
+        return;
+      };
+
+      const reqBody = JSON.parse(buffer);
+
+      if(reqBody.username && 
+          typeof reqBody.username ==='string'){
+        
+        user.username = reqBody.username;
+
+      }
+
+      if(reqBody.age && 
+          typeof reqBody.age ==='number'){
+
+        user.age = reqBody.age
+
+      }
+
+      if(
+        reqBody.hobbies && 
+        Array.isArray(reqBody.hobbies) &&
+        reqBody.hobbies.every((elem)=>(typeof elem === 'string'))){
+
+        user.hobbies = reqBody.hobbies;
+
+      }
+       
+        sendResponse(res, 201, user);
+        return;
+    })
+    return;
+  }
+  sendResponse(res, 400, 'request body does not contain required fields');;
 }
