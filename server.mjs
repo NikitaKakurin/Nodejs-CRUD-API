@@ -3,7 +3,7 @@ import http from 'http';
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 
 
-const db = [{"id": "io"},{"id": "i"},{"id": "qw"}];
+const db = [];
 
 const server = http.createServer((req, res) => {
   switch (req.method) {
@@ -12,7 +12,7 @@ const server = http.createServer((req, res) => {
     break
 
     case "POST":
-      get(req, res)
+      post(req, res)
     break
     default:
       // Send res for requests with no other response
@@ -26,36 +26,36 @@ const PORT = process.env.PORT || 4000;
 
 server.listen(PORT, () => console.log(`server running on port ${PORT}`));
 
-function get (request, response) {
-  console.log(request.url)
-  if (request.url === "/api/user" || request.url === "/api/user/") {
-    sendResponse(response, 200, db)
+function get (req, res) {
+  console.log(req.url)
+  if (req.url === "/api/users" || req.url === "/api/users/") {
+    sendResponse(res, 200, db)
     return;
   }
-  if(request.url.startsWith("/api/user/")){
-    const reqParts = request.url.split('/');
+  if(req.url.startsWith("/api/users/")){
+    const reqParts = req.url.split('/');
 
     if(reqParts.length !== 4){
-      sendResponse(response, 400, `wrong request: ${request.url}`);
+      sendResponse(res, 404, `wrong request: ${req.url}`);
       return;
     };
 
     const reqId = reqParts[3].toString();
     if(!uuidValidate(reqId)){
-      sendResponse(response, 400, `userId ${reqId} is invalid (not uuid)`);
+      sendResponse(res, 400, `userId ${reqId} is invalid (not uuid)`);
       return;
     };
     let resObj = db.find((user) => user.id===reqId);
 
     if(!resObj){
-      sendResponse(response, 404, `user with id: ${reqId} - not found`)
+      sendResponse(res, 404, `user with id: ${reqId} - not found`)
       return;
     };
 
-    sendResponse(response, 200, resObj)
+    sendResponse(res, 200, resObj)
     return;
   }
-  sendResponse(response, 400,`wrong request: ${request.url}`);
+  sendResponse(res, 404,`wrong request: ${req.url}`);
 }
 
 function sendResponse(response, code, message){
@@ -65,6 +65,40 @@ function sendResponse(response, code, message){
   response.end();
 };
 
-function post(request, response){
-  
+function post(req, res){
+  console.log(req.url);
+  switch (req.url) {
+    case "/api/users":
+      let buffer = '';
+      req.on('data', chunk => {
+        buffer += chunk;
+      });
+      req.on('end', () => {
+        const reqBody = JSON.parse(buffer);
+        console.log(reqBody);
+        if(reqBody.username && 
+            typeof reqBody.username ==='string' &&
+            reqBody.age && 
+            typeof reqBody.age ==='number' &&
+            reqBody.hobbies && 
+            Array.isArray(reqBody.hobbies) &&
+            reqBody.hobbies.every((elem)=>(typeof elem === 'string'))
+        ){
+          let id = uuidv4();
+          while (db.find((user) => user.id===id)) {
+            id = uuidv4();
+          }
+          reqBody.id = id;
+          db.push(reqBody);
+          sendResponse(res, 201, reqBody);
+          return;
+        }
+        sendResponse(res, 400, 'request body does not contain required fields');
+      });
+    break;
+    default:
+      res.statusCode = 404;
+      res.write(`CANNOT POST ${req.url}`);
+      res.end();
+  }
 }
