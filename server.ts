@@ -1,4 +1,5 @@
 import * as http from 'http';
+
 import { v4 as uuidv4, validate as uuidValidate } from 'uuid'
 
 interface IReqUser{
@@ -13,12 +14,12 @@ interface IUser extends IReqUser{
 
 const db: IUser[] = [];
 
-const server = http.createServer((req, res) => {
+const server = http.createServer((req: any, res: any) => {
   switch (req.method) {
     case "GET":
       try{
         get(req, res)
-      } catch(err){
+      } catch(err: any){
         if(err){
           sendResponse(res, 500, `Internal Server Error: ${err.message} `);
         }
@@ -29,7 +30,7 @@ const server = http.createServer((req, res) => {
     case "POST":
       try{
         post(req, res)
-      } catch(err){
+      } catch(err: any){
         if(err){
           sendResponse(res, 500, `Internal Server Error: ${err.message} `);
         }
@@ -39,7 +40,7 @@ const server = http.createServer((req, res) => {
     case "PUT":
       try{
         put(req, res)
-      } catch(err){
+      } catch(err: any){
         if(err){
           sendResponse(res, 500, `Internal Server Error: ${err.message} `);
         }
@@ -49,7 +50,7 @@ const server = http.createServer((req, res) => {
     case "DELETE":
       try{
         deleteUser(req, res)
-      } catch(err){
+      } catch(err: any){
         if(err){
           sendResponse(res, 500, `Internal Server Error: ${err.message} `);
         }
@@ -58,17 +59,15 @@ const server = http.createServer((req, res) => {
 
     default:
       // Send res for requests with no other response
-      res.statusCode = 400;
-      res.write("No Response");
-      res.end();
+      sendResponse(res, 400, `wrong method, please use GET,POST,PUT or DELETE`);
   }
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT: string|number = process.env.PORT || 4000;
 
 server.listen(PORT, () => console.log(`server running on port ${PORT}`));
 
-function get (req, res) {
+function get (req: any, res: any) {
 
   if (req.url === "/api/users" || req.url === "/api/users/") {
     sendResponse(res, 200, db)
@@ -100,7 +99,7 @@ function get (req, res) {
   sendResponse(res, 404,`wrong request: ${req.url}`);
 }
 
-function sendResponse(response, code: number, message: string|IUser[]|IUser|[]){
+function sendResponse(response: any, code: number, message: string|IUser[]|IUser|[]){
   response.statusCode = code;
   response.setHeader("Content-Type", "application/json");
   response.write(JSON.stringify(message));
@@ -108,11 +107,11 @@ function sendResponse(response, code: number, message: string|IUser[]|IUser|[]){
 };
 
 
-function post(req, res){
+function post(req: any, res: any){
   switch (req.url) {
     case "/api/users":
       let buffer: string = '';
-      req.on('data', chunk => {
+      req.on('data', (chunk: Buffer)  => {
         buffer += chunk;
       });
       req.on('end', () => {
@@ -153,13 +152,13 @@ function post(req, res){
 }
 
 
-function put(req, res) {
+function put(req: any, res: any) {
   if(req.url.startsWith("/api/users/")){
     
-    let buffer = '';
+    let buffer: string = '';
 
-    req.on('data', chunk => {
-      buffer += chunk;
+    req.on('data', (chunk: Buffer) => {
+      buffer += chunk.toString();
     });
 
     req.on('end', () => {
@@ -216,7 +215,7 @@ function put(req, res) {
   sendResponse(res, 400, 'request body does not contain required fields');;
 }
 
-function deleteUser(req, res) {
+function deleteUser(req: any, res: any) {
   if(req.url.startsWith("/api/users/")){
     const reqParts: string = req.url.split('/');
 
